@@ -38,7 +38,7 @@ export const getAllProjects = async (req, res) => {
             email: req.user.email
         })
 
-        const allUserProjects = await projectService.getAllProjectByUserId({
+        const allUserProjects = await projectService.getAllProjects({
             userId: loggedInUser._id
         })
 
@@ -68,7 +68,7 @@ export const addUserToProject = async (req, res) => {
         })
 
 
-        const project = await projectService.addUsersToProject({
+        const project = await projectService.addUserToProject({
             projectId,
             users,
             userId: loggedInUser._id
@@ -105,3 +105,28 @@ export const getProjectId = async (req, res) => {
 
 }
 
+export const updateFileTree = async (req,res)=>{
+
+    const errors = validationResult(req);
+
+    if(!errors.isEmpty){
+        return res.status(400).json({errors:errors.array()});
+    }
+
+    try{
+        const {projectId,fileTree} = req.body;
+
+        const project = await projectService.updateFileTree({
+            projectId,
+            fileTree
+        })
+
+        return res.status(200).json({
+            project
+        })
+    }
+    catch(err){
+        console.log(err)
+        res.status(400).json({error:err.message})
+    }
+}
