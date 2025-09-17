@@ -31,14 +31,14 @@ export const createProject = async (req, res) => {
 
 }
 
-export const getAllProjects = async (req, res) => {
+export const getAllProject = async (req, res) => {
     try {
 
         const loggedInUser = await userModel.findOne({
             email: req.user.email
         })
 
-        const allUserProjects = await projectService.getAllProjects({
+        const allUserProjects = await projectService.getAllProjectByUserId({
             userId: loggedInUser._id
         })
 
@@ -68,7 +68,7 @@ export const addUserToProject = async (req, res) => {
         })
 
 
-        const project = await projectService.addUserToProject({
+        const project = await projectService.addUsersToProject({
             projectId,
             users,
             userId: loggedInUser._id
@@ -86,13 +86,13 @@ export const addUserToProject = async (req, res) => {
 
 }
 
-export const getProjectId = async (req, res) => {
+export const getProjectById = async (req, res) => {
 
     const { projectId } = req.params;
 
     try {
 
-        const project = await projectService.getProjectId({ projectId });
+        const project = await projectService.getProjectById({ projectId });
 
         return res.status(200).json({
             project
@@ -105,16 +105,16 @@ export const getProjectId = async (req, res) => {
 
 }
 
-export const updateFileTree = async (req,res)=>{
-
+export const updateFileTree = async (req, res) => {
     const errors = validationResult(req);
 
-    if(!errors.isEmpty){
-        return res.status(400).json({errors:errors.array()});
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
     }
 
-    try{
-        const {projectId,fileTree} = req.body;
+    try {
+
+        const { projectId, fileTree } = req.body;
 
         const project = await projectService.updateFileTree({
             projectId,
@@ -124,9 +124,10 @@ export const updateFileTree = async (req,res)=>{
         return res.status(200).json({
             project
         })
-    }
-    catch(err){
+
+    } catch (err) {
         console.log(err)
-        res.status(400).json({error:err.message})
+        res.status(400).json({ error: err.message })
     }
+
 }

@@ -1,349 +1,3 @@
-// import React, { useState, useEffect, useContext, useRef, use } from 'react'
-// import { useLocation } from 'react-router-dom'
-// import axios from '../config/axios.js'
-// import { initializeSocket, receiveMessage, sendMessage } from '../config/socket.js'
-// import { UserContext } from '../context/user.context.jsx'
-// import Markdown from 'markdown-to-jsx'
-// import { getWebContainer } from '../config/webContainer.js'
-// import hljs from 'highlight.js'
-
-
-// function SyntaxHighlightedCode(props) {
-//   const ref = useRef(null)
-
-//   React.useEffect(() => {
-//     if (ref.current && props.className?.includes('lang-') && window.hljs) {
-//       window.hljs.highlightElement(ref.current)
-
-//       ref.current.removeAttribute('data-highlighted')
-//     }
-//   }, [props.className, props.children])
-
-//   return <code {...props} ref={ref} />
-// }
-
-// const Project = () => {
-
-//   const location = useLocation();
-
-//   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const [selectedUserId, setSelectedUserId] = useState(new Set());
-//   const [project, setProject] = useState(location.state.project);
-//   const [message, setMessage] = useState('');
-//   const { user } = useContext(UserContext);
-//   const messageRef = React.createRef()
-//   const [users, setUsers] = useState([]);
-//   const [messages, setMessages] = useState([]);
-//   const messageBox = React.createRef();
-//   const [fileTree, setFileTree] = useState({});
-//   const [webContainer, setWebContainer] = useState(null);
-
-//   const [currentFile, setCurrentFile] = useState(null)
-//   const [openFiles, setOpenFiles] = useState([]);
-
-//   const [iframeUrl, setIframeUrl] = useState(null);
-//   const [runProcess, setRunProcess] = useState(null);
-
-
-
-
-//   const handleUserClick = (id) => {
-
-//     setSelectedUserId(prevSelectedUderId => {
-
-//       const newSelectedUserId = new Set(prevSelectedUderId);
-//       if (newSelectedUserId.has(id)) {
-//         newSelectedUserId.delete(id);
-//       } else {
-//         newSelectedUserId.add(id);
-//       }
-//       return newSelectedUserId;
-//     });
-//   }
-
-
-//   function send() {
-
-
-//     sendMessage("project-message", {
-//       message,
-//       sender: user
-//     })
-//     setMessages(prevMessages => [...prevMessages, { sender: user, message }])
-//     setMessage("");
-//   }
-
-//   function WriteAiMessage(message) {
-//     const messageObject = JSON.parse(message)
-
-//     return (
-//       <div className='overflow-auto bg-slate-950 text-white rounded-sm p-2'>
-
-//         <Markdown
-//           children={messageObject.text}
-//           options={{
-//             overrides: {
-//               code: SyntaxHighlightedCode,
-//             },
-//           }}
-//         >
-//         </Markdown>
-//       </div>
-//     )
-//   }
-
-//   function addCollaborators() {
-
-//     axios.put('/projects/add-user', {
-//       projectId: location.state.project._id,
-//       users: Array.from(selectedUserId)
-//     }).then(res => {
-//       console.log(res.data);
-//       setIsModalOpen(false);
-//     }).catch(err => {
-//       console.log("Error:", err.message);
-//     })
-//   }
-
-
-
-
-
-//   useEffect(() => {
-//     initializeSocket(project._id);
-
-//     if (!webContainer) {
-//       getWebContainer().then(container => {
-//         setWebContainer(container);
-//         console.log("Container started");
-//       })
-//     }
-
-//     receiveMessage("project-message", data => {
-//       console.log(data);
-
-//       if(data.sender._id=='ai'){
-//  const message = JSON.parse(data.message)
-//       console.log(message)
-
-//       webContainer?.mount(message.fileTree)
-
-//       if (message.fileTree) {
-//         setFileTree(message.fileTree || {})
-//       }
-
-//       setMessages(prevMessages => [...prevMessages, data])
-//       }
-// else{
-//   setMessages(prevMessages=>[...prevMessages,data])
-// }
-     
-
-//     })
-
-//     axios.get(`/projects/get-project/${location.state.project._id}`)
-//       .then(res => {
-//         console.log(res.data.project);
-//         setProject(res.data.project);
-//         setFileTree(res.data.project.fileTree || {})
-
-//       }).catch(err => {
-//         console.log(err);
-//       })
-
-
-//     axios.get('/users/all')
-//       .then(res => {
-//         setUsers(res.data.users);
-//       }).catch(err => {
-//         console.log(err);
-//       })
-//   }, [location.state.project._id])
-
-
-//   function saveFileTree(ft){
-//     axios.put('/projects/update-file-tree',{
-//       projectId:project._id,
-//       fileTree:ft
-//     }).then(res=>{
-//       console.log(res.data)
-//     }).catch(err=>{
-//       console.log(err)
-//     })
-//   }
-
-//   function scrollToBottom() {
-//     messageBox.current.scrollTop = messageBox.current.scrollHeight;
-//   }
-
-
-
-//   console.log(location.state);
-
-//   return (
-//     <main className='h-screen w-screen flex'>
-//       <section className='left relative flex flex-col h-screen min-w-80 bg-slate-300'>
-//         <header className='flex justify-between items-center p-2 px-4 w-full bg-slate-200 absolute z-10 top-0'>
-//           <button
-//             onClick={() => setIsModalOpen(true)}
-//             className='flex gap-2' >
-//             <i className="ri-add-fill mr-1"></i>
-//             <p>Add collaborator</p>
-//           </button>
-//           <button className='p-2 '
-//             onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}>
-//             <i className='ri-group-fill '>
-//             </i>
-//           </button>
-//         </header>
-//         <div className="conversation-area t-14 pb-10  flex-grow flex flex-col h-full relative">
-//           <div
-//             ref={messageBox}
-//             className="message-box flex-grow p-1 flex flex-col  overflow-auto max-h-full scrollbar-hide gap-1">
-//             {messages.map((msg, index) => (
-//               <div key={index} className={`${msg.sender._id === 'ai' ? 'max-w-80' : 'max-w-52'} ${msg.sender._id == user._id.toString() && 'ml-auto'}  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
-//                 <small className='opacity-65 text-xs'>{msg.sender.email}</small>
-//                 <div className='text-sm'>
-//                   {msg.sender._id === 'ai' ?
-//                     WriteAiMessage(msg.message)
-//                     : <p>{msg.message}</p>}
-//                 </div>
-//               </div>
-//             ))}
-           
-
-//           <div className="inputField w-full flex absolute bottom-0">
-//             <input
-//               value={message}
-//               onChange={(e) => setMessage(e.target.value)}
-//               className='p-2 px-4 border-none outline-none flex-grow bg-slate-50' type="text" placeholder='Enter message' />
-//             <button
-//               onClick={send}
-//               className='px-5 bg-slate-950 text-white'><i className="ri-send-plane-fill"></i></button>
-//           </div>
-//         </div>
-
-//         <div className={`side-panel w-full h-full flex flex-col gap-2 b-slate-50  bg-slate-50 absolute transition-all ${isSidePanelOpen ? 'translate-x-0' : "-translate-x-full"}  top-0`}>
-
-//           <header className='flex justify-between items-center  px-3 bg-slate-200'>
-//             <h1 className='font-semibold text-lg'>Collaborators</h1>
-//             <button
-//               className='p-2'
-//               onClick={() => setIsSidePanelOpen(false)}
-//             ><i className='ri-close-fill text-2xl'></i></button>
-//           </header>
-
-//           <div className="users flex flex-col gap-2  ">
-//             {
-//               project.users && project.users.map(user => {
-//                 return (
-//                   <div className="user flex gap-2 items-center cursor-pointer hover:bg-slate-200 p-2">
-//                     <div className='aspect-square relative rounded-full w-fit h-fit flex items-center justify-center p-6 bg-slate-600 text-white '><i className='ri-user-fill absolute'></i>
-
-//                     </div>
-//                     <h1 className='font-semibold text-lg '>{user.email}</h1>
-//                   </div>
-//                 )
-//               })
-//             }
-
-//           </div>
-//         </div>
-
-//       </section>
-
-
-//       <section className='right bg-red-50 flex-grow h-full flex'>
-//         <div className="explorer f-full max-w-64 py-2 bg-slate-200 min-w-52">
-//           <div className="file-tree w-full">
-//             {
-//               Object.keys(fileTree).map((file, index) => (
-//                 <button
-//                   onClick={() => {
-//                     setCurrentFile(file)
-//                     setOpenFiles([new Set([...openFiles, file])])
-//                   }}
-//                   className="tree-element p-2 px-4 cursor-pointer flex items-center gap-2 bg-slate-300 w-full">
-//                   <p className='font-semibold text-lg cursor-pointer'>{file}</p>
-//                 </button>
-//               ))
-//             }
-//           </div>
-
-//           <div>
-
-            
-//           </div>
-//         </div>
-//         {currentFile && (
-//           <div className="code-editor flex flex-col flex-grow h-full">
-//             <div className="top">
-//               {
-//                 openFiles.map((file, index) => (
-//                   <button onClick={() => setCurrentFile(file)}
-//                     className={`open-file cursor-pointer p-2 px-4 flex items-center w-fit gap-2 bg-slate-300 ${currentFile === file ? 'bg-slate-400' : ''}`}
-//                   >
-//                     <p className='font-semibold text-lg'>{file}</p>
-//                   </button>
-//                 ))
-//               }
-//             </div>
-//             <div className="bottom flex flex-grow">
-//               {
-//                 fileTree[currentFile] && (
-
-//                   <textarea
-//                     value={fileTree[currentFile].content}
-//                     onChange={(e) => {
-//                       setFileTree({
-//                         ...fileTree,
-//                         [currentFile]: {
-//                           content: e.target.value
-//                         }
-//                       })
-//                     }}
-//                     className='w-full h-full p-4 bg-slate-50'></textarea>
-//                 )
-//               }
-//             </div>
-//           </div>
-//         )}
-//       </section>
-
-//       {isModalOpen && (
-//         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-//           <div className="bg-white p-4 rounded-md w-96 max-w-full relative">
-//             <header className='flex justify-between items-center mb-4'>
-//               <h2 className='text-xl font-semibold'>Select User</h2>
-//               <button onClick={() => setIsModalOpen(false)} className='p-2'>
-//                 <i className="ri-close-fill"></i>
-//               </button>
-//             </header>
-//             <div className="users-list flex flex-col gap-2 mb-16 max-h-96 overflow-auto">
-//               {users.map(user => (
-//                 <div key={user.id} className={`user cursor-pointer hover:bg-slate-200 ${Array.from(selectedUserId).indexOf(user._id) != -1 ? 'bg-slate-200' : ""} p-2 flex gap-2 items-center`} onClick={() => handleUserClick(user._id)}>
-//                   <div className='aspect-square relative rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600'>
-//                     <i className="ri-user-fill absolute"></i>
-//                   </div>
-//                   <h1 className='font-semibold text-lg'>{user.email}</h1>
-//                 </div>
-//               ))}
-//             </div>
-//             <button
-//               onClick={addCollaborators}
-//               className='absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-blue-600 text-white rounded-md'>
-//               Add Collaborators
-//             </button>
-//           </div>
-//         </div>
-//       )}
-//     </main>
-//   )
-// }
-
-// export default Project
-
 import React, { useState, useEffect, useContext, useRef } from 'react'
 import { UserContext } from '../context/user.context'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -361,7 +15,6 @@ function SyntaxHighlightedCode(props) {
         if (ref.current && props.className?.includes('lang-') && window.hljs) {
             window.hljs.highlightElement(ref.current)
 
-            // hljs won't reprocess the element unless this attribute is removed
             ref.current.removeAttribute('data-highlighted')
         }
     }, [ props.className, props.children ])
@@ -376,14 +29,14 @@ const Project = () => {
 
     const [ isSidePanelOpen, setIsSidePanelOpen ] = useState(false)
     const [ isModalOpen, setIsModalOpen ] = useState(false)
-    const [ selectedUserId, setSelectedUserId ] = useState(new Set()) // Initialized as Set
+    const [ selectedUserId, setSelectedUserId ] = useState(new Set()) 
     const [ project, setProject ] = useState(location.state.project)
     const [ message, setMessage ] = useState('')
     const { user } = useContext(UserContext)
     const messageBox = React.createRef()
 
     const [ users, setUsers ] = useState([])
-    const [ messages, setMessages ] = useState([]) // New state variable for messages
+    const [ messages, setMessages ] = useState([]) 
     const [ fileTree, setFileTree ] = useState({})
 
     const [ currentFile, setCurrentFile ] = useState(null)
@@ -467,49 +120,29 @@ const Project = () => {
         }
 
 
-        // receiveMessage('project-message', data => {
-
-        //     console.log(data)
-            
-        //     if (data.sender._id == 'ai') {
-
-
-        //         const message = JSON.parse(data.message)
-
-        //         console.log(message)
-
-        //         webContainer?.mount(message.fileTree)
-
-        //         if (message.fileTree) {
-        //             setFileTree(message.fileTree || {})
-        //         }
-        //         setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
-        //     } else {
-
-
-        //         setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
-        //     }
-        // })
-
         receiveMessage('project-message', data => {
-    console.log(data)
-    
-    if (data.sender && data.sender._id === 'ai') {
-        const message = JSON.parse(data.message)
-        webContainer?.mount(message.fileTree)
 
-        if (message.fileTree) {
-            setFileTree(message.fileTree || {})
-        }
-        
-        setMessages(prevMessages => [...prevMessages, data])
-    } else if (data.sender) {
-        setMessages(prevMessages => [...prevMessages, data])
-    } else {
-        console.warn('Received message without sender:', data);
-    }
-});
+            console.log(data)
+            
+            if (data.sender._id == 'ai') {
 
+
+                const message = JSON.parse(data.message)
+
+                console.log(message)
+
+                webContainer?.mount(message.fileTree)
+
+                if (message.fileTree) {
+                    setFileTree(message.fileTree || {})
+                }
+                setMessages(prevMessages => [ ...prevMessages, data ]) 
+            } else {
+
+
+                setMessages(prevMessages => [ ...prevMessages, data ]) 
+            }
+        })
 
 
         axios.get(`/projects/get-project/${location.state.project._id}`).then(res => {
@@ -518,8 +151,6 @@ const Project = () => {
 
             setProject(res.data.project)
             setFileTree(res.data.project.fileTree || {})
-        }).catch(err=>{
-            console.log("Error fectching project:",err);
         })
 
         axios.get('/users/all').then(res => {
@@ -546,7 +177,6 @@ const Project = () => {
     }
 
 
-    // Removed appendIncomingMessage and appendOutgoingMessage functions
 
     function scrollToBottom() {
         messageBox.current.scrollTop = messageBox.current.scrollHeight
@@ -604,7 +234,7 @@ const Project = () => {
                     </header>
                     <div className="users flex flex-col gap-2">
 
-                        {/* {project.users && project.users.map(user => {
+                        {project.users && project.users.map(user => {
 
 
                             return (
@@ -617,12 +247,7 @@ const Project = () => {
                             )
 
 
-                        })} */}
-                        {project.users && project.users.filter(user => user != null).map(user => (
-    <div key={user._id} className="user cursor-pointer hover:bg-slate-200 p-2 flex gap-2 items-center">
-        <h1 className='font-semibold text-lg'>{user.email}</h1>
-    </div>
-))}
+                        })}
                     </div>
                 </div>
             </section>
