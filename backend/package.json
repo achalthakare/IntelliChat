@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "build": "cd frontend && npm install && npm run build"
+    "build": "npm install"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
