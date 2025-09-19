@@ -1,0 +1,9 @@
+staticSites:
+  - type: web
+    name: IntelliChat-frontend
+    buildCommand: npm install && npm run build
+    publishPath: frontend/dist   
+    redirects:
+      - source: "/*"
+        destination: "/index.html"
+        status: 200
