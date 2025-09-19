@@ -29,11 +29,10 @@ app.use('/projects', projectRoutes);
 app.use("/ai", aiRoutes)
 
 if (process.env.NODE_ENV === 'production') {
-  // Serve static files from client/dist (Vite build output)
-  app.use(express.static(path.join(__dirname, 'client', 'dist')));
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
   app.get('/*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+   res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
   });
 }
 
